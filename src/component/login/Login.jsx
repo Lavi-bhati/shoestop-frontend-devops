@@ -1,82 +1,85 @@
 
-import React, { useContext, useState } from 'react'
-import '../signup/signup.css'
-import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
-import { productContext } from '../contextAPI/Context'
-import API_URL from '../../api'
+import React, { useContext, useState } from 'react';
+import '../signup/signup.css';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { productContext } from '../contextAPI/Context';
+import API_URL from '../../api';
 
 const Login = () => {
-    const navigate = useNavigate()
-    const { setToken } = useContext(productContext)
+    const navigate = useNavigate();
+    const { setToken } = useContext(productContext);
 
-    const [email, setMail] = useState('')
-    const [password, setPassword] = useState('')
+    const [email, setMail] = useState('');
+    const [password, setPassword] = useState('');
 
-    const url = `${API_URL}/login`
-
-    const changeMailHandler = (e) => {
-        setMail(e.target.value)
-    }
-
-    const changePasswordHandler = (e) => {
-        setPassword(e.target.value)
-    }
-
-    const submitHandler = async () => {
-        if (!email || !password) {
-            alert("Please enter email and password")
-            return
-        }
+    const handleLogin = async (e) => {
+        e.preventDefault();
 
         try {
-            const response = await axios.post(url, {
-                email,
-                password
-            })
+            const response = await axios.post(
+                `${API_URL}/login`,
+                {
+                    email,
+                    password
+                }
+            );
 
             if (response.data.token) {
-                localStorage.setItem('token', response.data.token)
-                setToken(response.data.token)
-                alert("Login successful!")
-                navigate('/home')
-            } else {
-                alert("Login failed: Token not received")
-            }
+                localStorage.setItem('token', response.data.token);
 
+                setToken(response.data.token);
+
+                alert('Login successful!');
+
+                navigate('/home');
+            }
         } catch (error) {
-            console.error("Login Error:", error.response?.data || error.message)
+            console.error(
+                'Login error:',
+                error.response?.data || error.message
+            );
 
             alert(
-                error.response?.data?.error ||
                 error.response?.data?.message ||
-                "Login failed. Please check your credentials."
-            )
+                error.response?.data?.error ||
+                'Login failed. Please check your credentials.'
+            );
         }
-    }
+    };
 
     return (
-        <div className='signup'>
-            <input
-                type="email"
-                placeholder='email'
-                value={email}
-                onChange={changeMailHandler}
-            />
+        <div className="signup">
+            <form onSubmit={handleLogin}>
+                <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setMail(e.target.value)}
+                    required
+                />
 
-            <input
-                type="password"
-                placeholder='password'
-                value={password}
-                onChange={changePasswordHandler}
-            />
+                <input
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                />
 
-            <button onClick={submitHandler}>
-                Login
-            </button>
+                <button type="submit">
+                    Login
+                </button>
+
+                <p className="text-center mt-3">
+                    Don't have an account?{' '}
+                    <Link to="/signup">
+                        Sign Up
+                    </Link>
+                </p>
+            </form>
         </div>
-    )
-}
+    );
+};
 
-export default Login
-
+export default Login;

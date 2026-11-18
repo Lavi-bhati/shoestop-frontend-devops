@@ -1,43 +1,52 @@
-import React from 'react'
-import './App.css'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Home from './component/home/Home'
-import Fav from './component/fav/Fav'
-import Navbar from './component/navbar/Navbar'
-import 'bootstrap/dist/css/bootstrap.min.css';
-import Cart from './component/cart/Cart'
-import Signup from './component/signup/Signup'
-import Login from './component/login/Login'
-import NavbarLog from './component/navbar/NavbarLog'
 
-const App = () => {
+import React from 'react';
+import {
+    BrowserRouter,
+    Routes,
+    Route,
+    Navigate
+} from 'react-router-dom';
 
-  const hasToken = !!localStorage.getItem('token');
+import Login from './component/login/Login';
+import Signup from './component/signup/Signup';
+import Home from './component/home/Home';
+import Cart from './component/cart/Cart';
 
-  return (
-    <div>
-      {hasToken ? (
-            <NavbarLog />
-          ) : (
-            <Navbar />
-          )}
-      
-      <BrowserRouter>
-        <Routes>
-        {hasToken ? (
-            <Route path="/" element={<Home/>} />
-          ) : (
-            <Route path="/" element={<Login />} />
-          )}
-          <Route exact path='/home' element={<Home />}></Route>
+import Context from './component/contextAPI/Context';
 
-          <Route path='/cart' element={<Cart />}></Route>
-          <Route path='/signup' element={<Signup/>} ></Route>
-          <Route path='/login' element={<Login/>} ></Route>
-        </Routes>
-      </BrowserRouter>
-    </div>
-  )
+function App() {
+    return (
+        <Context>
+            <BrowserRouter>
+                <Routes>
+                    <Route
+                        path="/"
+                        element={<Navigate to="/login" />}
+                    />
+
+                    <Route
+                        path="/login"
+                        element={<Login />}
+                    />
+
+                    <Route
+                        path="/signup"
+                        element={<Signup />}
+                    />
+
+                    <Route
+                        path="/home"
+                        element={<Home />}
+                    />
+
+                    <Route
+                        path="/cart"
+                        element={<Cart />}
+                    />
+                </Routes>
+            </BrowserRouter>
+        </Context>
+    );
 }
 
-export default App
+export default App;
