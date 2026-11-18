@@ -10,13 +10,16 @@ const Product = () => {
     const [products, setProducts] = useState([]);
     const { token } = useContext(productContext);
 
-    // Fetch all products from backend
+    // Fetch all products
     const fetchData = async () => {
         try {
             const res = await axios.get(`${API_URL}/api/getproducts`);
             setProducts(res.data);
         } catch (error) {
-            console.error('Error fetching products:', error);
+            console.error(
+                'Error fetching products:',
+                error.response?.data || error.message
+            );
         }
     };
 
@@ -25,49 +28,72 @@ const Product = () => {
     }, []);
 
     // Add product to favourites
-    const getProduct = (image, title, company, price) => {
-        const headers = {
-            Authorization: `Bearer ${token}`,
-        };
+    const getProduct = async (image, title, company, price) => {
+        if (!token) {
+            alert('Please login first!');
+            return;
+        }
 
-        axios.post(
-            `${API_URL}/api/addfav`,
-            { image, title, company, price },
-            { headers }
-        )
-        .then((response) => {
+        try {
+            const response = await axios.post(
+                `${API_URL}/api/addfav`,
+                { image, title, company, price },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
             if (response.status === 202) {
                 alert('Already in favourite list');
             } else {
                 alert('Item added to favourites');
             }
-        })
-        .catch((error) => {
-            console.error('Error adding favourite:', error);
-        });
+        } catch (error) {
+            console.error(
+                'Error adding favourite:',
+                error.response?.data || error.message
+            );
+            alert(error.response?.data?.message || 'Unable to add favourite');
+        }
     };
 
     // Add product to cart
-    const addtoCart = (image, title, company, price) => {
-        axios.post(
-            `${API_URL}/api/addcart`,
-            { image, title, company, price },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        )
-        .then((response) => {
+    const addtoCart = async (image, title, company, price) => {
+        if (!token) {
+            alert('Please login first!');
+            return;
+        }
+
+        try {
+            const response = await axios.post(
+                `${API_URL}/api/addcart`,
+                { image, title, company, price },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
             if (response.status === 202) {
                 alert('Already in cart');
             } else {
                 alert('Item added to cart');
             }
-        })
-        .catch((error) => {
-            console.error('Error adding to cart:', error);
-        });
+        } catch (error) {
+            console.error(
+                'Error adding to cart:',
+                error.response?.data || error.message
+            );
+
+            alert(
+                error.response?.data?.message ||
+                error.response?.data?.error ||
+                'Unable to add item to cart. Please try again.'
+            );
+        }
     };
 
     return (
@@ -121,3 +147,4 @@ const Product = () => {
 };
 
 export default Product;
+

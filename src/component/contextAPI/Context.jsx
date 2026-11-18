@@ -3,76 +3,96 @@ import axios from 'axios';
 import React, { createContext, useEffect, useState } from 'react';
 import API_URL from '../../api';
 
-
 export const productContext = createContext();
 
 const Context = ({ children }) => {
-  const [favProList, setFavProductList] = useState([]);
-  const [cartProduct, setCartProducts] = useState([]);
-  const [token,setToken] = useState('')
+    const [favProList, setFavProductList] = useState([]);
+    const [cartProduct, setCartProducts] = useState([]);
 
-  const getTokenFromLocalStorage = () => {
-    setToken(localStorage.getItem('token'))
-    return localStorage.getItem('token');
-  };
+    // Load saved token when the context initializes
+    const [token, setToken] = useState(
+        () => localStorage.getItem('token') || ''
+    );
 
-  const getFav = async () => {
-    try {
-      const token = getTokenFromLocalStorage();
-      if (token) {
-        const headers = {
-          Authorization: `Bearer ${token}`,
-        };
+    // Fetch favourites
+    const getFav = async () => {
+        if (!token) {
+            setFavProductList([]);
+            return;
+        }
 
-        const response = await axios.get(`${API_URL}/api/addfav`, { headers });
-        setFavProductList(response.data);
-      }
-    } catch (error) {
-      console.log('No auth found');
-    }
-  };
+        try {
+            const response = await axios.get(
+                `${API_URL}/api/addfav`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
 
-  const getcart = async () => {
-    try {
-      const token = getTokenFromLocalStorage();
-      if (token) {
-        const headers = {
-          Authorization: `Bearer ${token}`,
-        };
+            setFavProductList(response.data);
+        } catch (error) {
+            console.error(
+                'Error fetching favourites:',
+                error.response?.data || error.message
+            );
+        }
+    };
 
-        const response = await axios.get(`${API_URL}/api/addcart`, { headers });
-        setCartProducts(response.data);
-      }
-    } catch (error) {
-      console.log('No auth found');
-    }
-  };
+    // Fetch cart items
+    const getcart = async () => {
+        if (!token) {
+            setCartProducts([]);
+            return;
+        }
 
+        try {
+            const response = await axios.get(
+                `${API_URL}/api/addcart`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
 
+            setCartProducts(response.data);
+        } catch (error) {
+            console.error(
+                'Error fetching cart:',
+                error.response?.data || error.message
+            );
+        }
+    };
+
+    // Fetch data whenever login token changes
     useEffect(() => {
-      getTokenFromLocalStorage()
-      if(token){
-        getFav()
-      getcart();
-      }
+        if (token) {
+            getFav();
+            getcart();
+        } else {
+            setFavProductList([]);
+            setCartProducts([]);
+        }
     }, [token]);
 
-
-  return (
-    <productContext.Provider
-      value={{
-        favProList,
-        setFavProductList,
-        cartProduct,
-        setCartProducts,
-        token,
-        setToken,
-        getcart
-      }}
-    >
-      {children}
-    </productContext.Provider>
-  );
+    return (
+        <productContext.Provider
+            value={{
+                favProList,
+                setFavProductList,
+                cartProduct,
+                setCartProducts,
+                token,
+                setToken,
+                getFav,
+                getcart
+            }}
+        >
+            {children}
+        </productContext.Provider>
+    );
 };
 
 export default Context;
