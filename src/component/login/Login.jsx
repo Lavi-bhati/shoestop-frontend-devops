@@ -1,48 +1,105 @@
-import React,{useContext, useState} from 'react'
+
+import React, { useContext, useState } from 'react'
 import '../signup/signup.css'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { productContext } from '../contextAPI/Context'
 
 const Login = () => {
+
     const navigate = useNavigate()
-    const { token,setToken } = useContext(productContext)
+
+    const { setToken } = useContext(productContext)
+
     const [email, setMail] = useState('')
     const [password, setPassword] = useState('')
-  
+
     const url = "http://localhost:5000/login"
- 
+
+    // Handle email input
     const changeMailHandler = (e) => {
         setMail(e.target.value)
     }
+
+    // Handle password input
     const changePasswordHandler = (e) => {
         setPassword(e.target.value)
     }
-  
-    const submitHandler = () => {
-      // console.log(name, mail, password)
-      axios.post(url, { name, email, password })
-      .then(res => {
-          if (res.status === 200 || res.status === 201) {
-            
-              localStorage.setItem('token', res.data.token);
-              console.log(res.data); 
-              setToken(res.data.token)
-              navigate('/home')
-          } else {
-              console.log('Request failed with status:', res.status);
-          }
-      })
-  }
-  
-  
+
+    // Handle login
+    const submitHandler = async () => {
+
+        if (!email || !password) {
+            alert("Please enter email and password")
+            return
+        }
+
+        try {
+
+            const response = await axios.post(url, {
+                email,
+                password
+            })
+
+            if (response.data.token) {
+
+                // Store token
+                localStorage.setItem('token', response.data.token)
+
+                // Update context
+                setToken(response.data.token)
+
+                alert("Login successful!")
+
+                // Navigate to home
+                navigate('/home')
+
+            } else {
+
+                alert("Login failed: Token not received")
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Login Error:",
+                error.response?.data || error.message
+            )
+
+            alert(
+                error.response?.data?.message ||
+                "Login failed. Please check your credentials."
+            )
+
+        }
+    }
+
     return (
-      <div className='signup'>
-        <input type="text" placeholder='email' onChange={(e) => { changeMailHandler(e) }}/>
-        <input type="password" placeholder='password'  onChange={(e) => { changePasswordHandler(e) }} />
-        <button onClick={() => { submitHandler() }}>Login</button>
-      </div>
+
+        <div className='signup'>
+
+            <input
+                type="email"
+                placeholder='email'
+                value={email}
+                onChange={changeMailHandler}
+            />
+
+            <input
+                type="password"
+                placeholder='password'
+                value={password}
+                onChange={changePasswordHandler}
+            />
+
+            <button onClick={submitHandler}>
+                Login
+            </button>
+
+        </div>
+
     )
-  }
+}
 
 export default Login
