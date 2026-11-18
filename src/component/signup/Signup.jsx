@@ -1,52 +1,108 @@
+
 import API_URL from '../../api';
-import React,{useState} from 'react'
-import './signup.css'
-import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import React, { useState } from 'react';
+import './signup.css';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Signup = () => {
+    const navigate = useNavigate();
 
-  const navigate = useNavigate()
+    const [name, setName] = useState('');
+    const [email, setMail] = useState('');
+    const [password, setPassword] = useState('');
 
-  const [name, setName] = useState('')
-  const [email, setMail] = useState('')
-  const [password, setPassword] = useState('')
+    const [loading, setLoading] = useState(false);
 
- const url = `${API_URL}/signup`;
+    const url = `${API_URL}/signup`;
 
-  const changeNameHandler = (e) => {
-      setName(e.target.value)
-  }
-  const changeMailHandler = (e) => {
-      setMail(e.target.value)
-  }
-  const changePasswordHandler = (e) => {
-      setPassword(e.target.value)
-  }
+    const changeNameHandler = (e) => {
+        setName(e.target.value);
+    };
 
-  const submitHandler = () => {
-    // console.log(name, mail, password)
-    axios.post(url, { name, email, password })
-    .then(res => {
-        if (res.status === 200 || res.status === 201) {
-            localStorage.setItem('token', JSON.stringify(res.data.token));
-            console.log(res.data); // Log the response data if the request was successful.
-            navigate('/')
-        } else {
-            console.log('Request failed with status:', res.status);
+    const changeMailHandler = (e) => {
+        setMail(e.target.value);
+    };
+
+    const changePasswordHandler = (e) => {
+        setPassword(e.target.value);
+    };
+
+    const submitHandler = async (e) => {
+        e.preventDefault();
+
+        if (loading) return;
+
+        try {
+            setLoading(true);
+
+            const res = await axios.post(url, {
+                name,
+                email,
+                password
+            });
+
+            if (res.status === 201) {
+                // Save the signup token
+                localStorage.setItem('token', res.data.token);
+
+                // Show successful signup notification
+                alert('🎉 Signup successful! Welcome to ShoeStop.');
+
+                // Redirect to login page
+                navigate('/login');
+            }
+
+        } catch (error) {
+            console.error(
+                'Signup error:',
+                error.response?.data || error.message
+            );
+
+            alert(
+                error.response?.data?.message ||
+                error.response?.data?.error ||
+                'Signup failed. Please try again.'
+            );
+
+        } finally {
+            setLoading(false);
         }
-    })
-}
+    };
 
+    return (
+        <div className="signup">
+            <form onSubmit={submitHandler}>
+                <input
+                    type="text"
+                    placeholder="Username"
+                    value={name}
+                    onChange={changeNameHandler}
+                    required
+                />
 
-  return (
-    <div className='signup'>
-      <input type="text" placeholder='username' onChange={(e) => { changeNameHandler(e) }}/>
-      <input type="text" placeholder='email' onChange={(e) => { changeMailHandler(e) }}/>
-      <input type="password" placeholder='password'  onChange={(e) => { changePasswordHandler(e) }} />
-      <button onClick={() => { submitHandler() }}>SignUp</button>
-    </div>
-  )
-}
+                <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={changeMailHandler}
+                    required
+                />
 
-export default Signup
+                <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={changePasswordHandler}
+                    required
+                />
+
+                <button type="submit" disabled={loading}>
+                    {loading ? 'Creating Account...' : 'Sign Up'}
+                </button>
+            </form>
+        </div>
+    );
+};
+
+export default Signup;
